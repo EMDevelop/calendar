@@ -5,21 +5,29 @@ import { formatRelativeSync } from '../../lib/formatTime.ts'
 interface StatusStripProps {
   readonly accounts: readonly AgendaAccount[]
   readonly nowIso: string
+  readonly onSync: () => void
 }
 
 /**
  * Quiet by design (docs/spec.md §7): a failed sync changes this line, never
  * the agenda above it.
+ *
+ * It doubles as the refresh control, because "how fresh is this" and "fetch
+ * it again" are the same thought.
  */
-export function StatusStrip({ accounts, nowIso }: StatusStripProps): JSX.Element | null {
+export function StatusStrip({ accounts, nowIso, onSync }: StatusStripProps): JSX.Element | null {
   if (accounts.length === 0) {
     return null
   }
 
   const needsReauth = accounts.filter((account) => account.status === 'needsReauth')
   const offline = accounts.filter((account) => account.status === 'offline')
+  const syncing = accounts.some((account) => account.status === 'syncing')
 
   const message = (() => {
+    if (syncing) {
+      return 'Syncing…'
+    }
     if (needsReauth.length > 0) {
       return `${needsReauth.map((account) => account.label).join(', ')} needs reconnecting`
     }
@@ -37,8 +45,17 @@ export function StatusStrip({ accounts, nowIso }: StatusStripProps): JSX.Element
   const tone = needsReauth.length > 0 ? 'text-urgent' : 'text-text-muted'
 
   return (
-    <footer className={`truncate border-t border-border px-3 py-1 text-[11px] ${tone}`}>
-      {message}
+    <footer className="flex items-center gap-2 border-t border-border px-3 py-1">
+      <span className={`min-w-0 flex-1 truncate text-[11px] ${tone}`}>{message}</span>
+      <button
+        type="button"
+        onClick={onSync}
+        disabled={syncing}
+        title="Check for changes now"
+        className="no-drag shrink-0 rounded px-1.5 py-0.5 text-[11px] text-text-muted hover:bg-bg-subtle hover:text-accent disabled:opacity-40"
+      >
+        {syncing ? '…' : 'Sync'}
+      </button>
     </footer>
   )
 }

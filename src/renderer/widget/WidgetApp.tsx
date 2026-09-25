@@ -63,7 +63,11 @@ export function WidgetApp(): JSX.Element {
         <MergedView snapshot={snapshot} onJoin={join} />
       )}
 
-      <StatusStrip accounts={snapshot.accounts} nowIso={snapshot.now} />
+      <StatusStrip
+        accounts={snapshot.accounts}
+        nowIso={snapshot.now}
+        onSync={() => void widgetApi().syncNow()}
+      />
     </div>
   )
 }

@@ -16,6 +16,7 @@ export interface WidgetBridge {
   hide(): Promise<void>
   setPinned(pinned: boolean): Promise<void>
   openSettings(): Promise<void>
+  syncNow(): Promise<void>
 }
 
 export interface SettingsBridge {

@@ -566,7 +566,7 @@ The whole IPC surface. Adding a channel means a row here, a Zod schema and a sen
 | Settings | `calendars:list`, `calendars:setSelected`   | renderer → main | `{ accountId }` / `{ accountId, calendarIds }` |
 | Settings | `displays:list`, `widget:moveToDisplay`     | renderer → main | none / `{ displayKey, corner }`                |
 | Settings | `settings:get`, `settings:update`           | renderer → main | none / partial `AppSettings`                   |
-| Settings | `sync:now`                                  | renderer → main | none                                           |
+| Both     | `sync:now`                                  | renderer → main | none                                           |
 
 ### 8.6 External links
 

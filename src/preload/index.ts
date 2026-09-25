@@ -86,6 +86,10 @@ function createWidgetBridge(): WidgetBridge {
     async openSettings(): Promise<void> {
       await ipcRenderer.invoke(CHANNELS.settingsOpen)
     },
+
+    async syncNow(): Promise<void> {
+      await ipcRenderer.invoke(CHANNELS.syncNow)
+    },
   }
 }
 

@@ -56,7 +56,7 @@ export const CHANNEL_CALLERS: Record<ChannelName, readonly WindowRole[]> = {
   [CHANNELS.widgetMoveToDisplay]: ['settings'],
   [CHANNELS.settingsGet]: ['settings'],
   [CHANNELS.settingsUpdate]: ['settings'],
-  [CHANNELS.syncNow]: ['settings'],
+  [CHANNELS.syncNow]: ['settings', 'widget'],
   [CHANNELS.alertShow]: ['alert'],
   [CHANNELS.alertJoin]: ['alert'],
   [CHANNELS.alertDismiss]: ['alert'],
