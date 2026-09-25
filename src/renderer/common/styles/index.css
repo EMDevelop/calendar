@@ -43,6 +43,13 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /* The platform default renders light and reads as a bright stripe against
+     the panel. Thin and theme-coloured instead. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--text-muted) 35%, transparent) transparent;
+  }
 }
 
 @layer components {
@@ -52,5 +59,15 @@
 
   .no-drag {
     -webkit-app-region: no-drag;
+  }
+
+  /* The widget is a glanceable panel, so it scrolls without showing a bar. */
+  .scrollbar-hidden {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 }

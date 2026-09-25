@@ -48,7 +48,7 @@ export function DayTimeline({ window, nowIso, lanes, onJoin }: DayTimelineProps)
   const hasAnyEvent = lanes.some((lane) => lane.items.length > 0)
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="scrollbar-hidden flex-1 overflow-y-auto">
       <div className="relative flex" style={{ height: `${heightPx}px` }}>
         <TimeGutter ticks={ticks} window={window} heightPx={heightPx} />
 
