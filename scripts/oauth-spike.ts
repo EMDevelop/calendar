@@ -22,8 +22,10 @@ const SCOPE_EVENTS = 'https://www.googleapis.com/auth/calendar.events.readonly'
 const SCOPE_CALENDAR_LIST = 'https://www.googleapis.com/auth/calendar.calendarlist.readonly'
 const SCOPES = [SCOPE_EVENTS, SCOPE_CALENDAR_LIST]
 
-const CLIENT_ID = process.env['MAIN_VITE_GOOGLE_CLIENT_ID'] ?? ''
-const CLIENT_SECRET = process.env['MAIN_VITE_GOOGLE_CLIENT_SECRET'] ?? ''
+const CLIENT_ID = (process.env['MAIN_VITE_GOOGLE_CLIENT_ID'] ?? '').trim()
+const CLIENT_SECRET = (process.env['MAIN_VITE_GOOGLE_CLIENT_SECRET'] ?? '').trim()
+
+const CALLBACK_TIMEOUT_MS = 5 * 60_000
 
 interface TokenResponse {
   readonly access_token?: string
@@ -57,7 +59,14 @@ async function startListener(expectedState: string): Promise<Listener> {
   const { port } = server.address() as AddressInfo
   const redirectUri = `http://127.0.0.1:${port}/callback`
 
+  let timeout: NodeJS.Timeout | undefined
+
   const code = new Promise<string>((resolve, reject) => {
+    // Give up rather than sit open forever if the sign-in is abandoned.
+    timeout = setTimeout(() => {
+      reject(new Error('timed out waiting for the browser callback after 5 minutes'))
+    }, CALLBACK_TIMEOUT_MS)
+
     server.on('request', (request, response) => {
       const url = new URL(request.url ?? '/', redirectUri)
       if (url.pathname !== '/callback') {
@@ -85,6 +94,7 @@ async function startListener(expectedState: string): Promise<Listener> {
     redirectUri,
     code,
     close: () => {
+      clearTimeout(timeout)
       server.close()
     },
   }
