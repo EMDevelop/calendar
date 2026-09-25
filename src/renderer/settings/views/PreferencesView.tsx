@@ -4,6 +4,7 @@ import {
   MAX_SYNC_INTERVAL_MINUTES,
   MIN_SYNC_INTERVAL_MINUTES,
 } from '../../../shared/constants.ts'
+import { supportedTimeZones } from '../../../shared/timezone.ts'
 import type { ThemeSource, ViewMode } from '../../../shared/types/settings.ts'
 import type { SettingsState } from '../../common/hooks/useSettings.ts'
 import { settingsApi } from '../../common/lib/ipcClient.ts'
@@ -11,6 +12,9 @@ import { settingsApi } from '../../common/lib/ipcClient.ts'
 interface PreferencesViewProps {
   readonly state: SettingsState
 }
+
+/** Read once: the runtime's full IANA list is long and never changes. */
+const TIME_ZONES = supportedTimeZones()
 
 export function PreferencesView({ state }: PreferencesViewProps): JSX.Element {
   const settings = state.settings
@@ -81,6 +85,27 @@ export function PreferencesView({ state }: PreferencesViewProps): JSX.Element {
           max={24}
           onChange={(hour) => void state.update({ dayEndHour: hour })}
         />
+      </Row>
+
+      <Row
+        label="Second time zone"
+        hint="Adds a second column of times to the widget, for calendars that run in another zone."
+      >
+        <select
+          value={settings.secondaryTimeZone ?? 'none'}
+          onChange={(event) => {
+            const value = event.target.value
+            void state.update({ secondaryTimeZone: value === 'none' ? null : value })
+          }}
+          className="w-56 rounded border border-border bg-bg px-2 py-1 text-sm"
+        >
+          <option value="none">None</option>
+          {TIME_ZONES.map((zone) => (
+            <option key={zone} value={zone}>
+              {zone.replace(/_/g, ' ')}
+            </option>
+          ))}
+        </select>
       </Row>
 
       <Row label="Notify before" hint="Set to off to stop meeting notifications.">

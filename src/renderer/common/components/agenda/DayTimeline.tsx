@@ -8,6 +8,7 @@ import {
   ratioFor,
   type DayWindow,
 } from '../../../../shared/timeline.ts'
+import { localTimeZone, timeZoneLabel } from '../../../../shared/timezone.ts'
 import { COLOUR_BAR, COLOUR_HEADER } from '../../lib/accountColours.ts'
 import { formatClockTime } from '../../lib/formatTime.ts'
 import { EmptyState } from './EmptyState.tsx'
@@ -23,7 +24,7 @@ import { EmptyState } from './EmptyState.tsx'
 /** Enough height for a half-hour row to stay legible. */
 const MINUTES_PER_PIXEL = 0.75
 const MIN_BLOCK_HEIGHT_PX = 18
-const GUTTER_WIDTH_PX = 44
+const GUTTER_COLUMN_WIDTH_PX = 38
 
 export interface TimelineLane {
   readonly key: string
@@ -36,39 +37,94 @@ interface DayTimelineProps {
   readonly window: DayWindow
   readonly nowIso: string
   readonly lanes: readonly TimelineLane[]
+  /** Shown as a second column of times beside local time (§6). */
+  readonly secondaryTimeZone: string | null
   readonly onJoin: (eventId: string) => void
 }
 
-export function DayTimeline({ window, nowIso, lanes, onJoin }: DayTimelineProps): JSX.Element {
+export function DayTimeline({
+  window,
+  nowIso,
+  lanes,
+  secondaryTimeZone,
+  onJoin,
+}: DayTimelineProps): JSX.Element {
   const spanMinutes = (window.endMs - window.startMs) / 60_000
   const heightPx = Math.max(240, Math.round(spanMinutes / MINUTES_PER_PIXEL))
   const ticks = buildTicks(window)
   const nowRatio = ratioFor(Date.parse(nowIso), window)
 
   const hasAnyEvent = lanes.some((lane) => lane.items.length > 0)
+  const zones: readonly (string | undefined)[] = secondaryTimeZone
+    ? [undefined, secondaryTimeZone]
+    : [undefined]
+  const gutterWidthPx = zones.length * GUTTER_COLUMN_WIDTH_PX
 
   return (
-    <div className="scrollbar-hidden flex-1 overflow-y-auto">
-      <div className="relative flex" style={{ height: `${heightPx}px` }}>
-        <TimeGutter ticks={ticks} window={window} heightPx={heightPx} />
+    <div className="flex min-h-0 flex-1 flex-col">
+      {secondaryTimeZone && (
+        <ZoneHeader
+          secondaryTimeZone={secondaryTimeZone}
+          nowIso={nowIso}
+          gutterWidthPx={gutterWidthPx}
+        />
+      )}
 
-        <div className="relative flex-1">
-          <GridLines ticks={ticks} window={window} />
+      <div className="scrollbar-hidden flex-1 overflow-y-auto">
+        <div className="relative flex" style={{ height: `${heightPx}px` }}>
+          <TimeGutter ticks={ticks} window={window} zones={zones} widthPx={gutterWidthPx} />
 
-          <div className="absolute inset-0 flex">
-            {lanes.map((lane) => (
-              <LaneColumn key={lane.key} lane={lane} window={window} onJoin={onJoin} />
-            ))}
-          </div>
+          <div className="relative flex-1">
+            <GridLines ticks={ticks} window={window} />
 
-          <NowLine ratio={nowRatio} label={formatClockTime(nowIso)} />
-
-          {!hasAnyEvent && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <EmptyState message="Nothing scheduled today" />
+            <div className="absolute inset-0 flex">
+              {lanes.map((lane) => (
+                <LaneColumn key={lane.key} lane={lane} window={window} onJoin={onJoin} />
+              ))}
             </div>
-          )}
+
+            <NowLine ratio={nowRatio} label={formatClockTime(nowIso)} />
+
+            {!hasAnyEvent && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <EmptyState message="Nothing scheduled today" />
+              </div>
+            )}
+          </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/** Names the gutter columns, so two times are never ambiguous. */
+function ZoneHeader({
+  secondaryTimeZone,
+  nowIso,
+  gutterWidthPx,
+}: {
+  secondaryTimeZone: string
+  nowIso: string
+  gutterWidthPx: number
+}): JSX.Element {
+  const at = new Date(Date.parse(nowIso))
+
+  return (
+    <div className="flex border-b border-border pb-0.5 text-[9px] text-text-muted">
+      <div className="flex shrink-0" style={{ width: `${gutterWidthPx}px` }}>
+        <span
+          className="truncate text-right"
+          style={{ width: `${GUTTER_COLUMN_WIDTH_PX}px`, paddingRight: '6px' }}
+        >
+          {timeZoneLabel(localTimeZone(), at)}
+        </span>
+        <span
+          className="truncate text-right"
+          style={{ width: `${GUTTER_COLUMN_WIDTH_PX}px`, paddingRight: '6px' }}
+          title={secondaryTimeZone}
+        >
+          {timeZoneLabel(secondaryTimeZone, at)}
+        </span>
       </div>
     </div>
   )
@@ -77,23 +133,34 @@ export function DayTimeline({ window, nowIso, lanes, onJoin }: DayTimelineProps)
 function TimeGutter({
   ticks,
   window,
+  zones,
+  widthPx,
 }: {
   ticks: readonly { ms: number; major: boolean }[]
   window: DayWindow
-  heightPx: number
+  zones: readonly (string | undefined)[]
+  widthPx: number
 }): JSX.Element {
   return (
-    <div className="relative shrink-0" style={{ width: `${GUTTER_WIDTH_PX}px` }}>
-      {ticks.map((tick) => (
-        <span
-          key={tick.ms}
-          className={`tabular absolute right-1.5 -translate-y-1/2 font-mono text-[10px] ${
-            tick.major ? 'text-text-muted' : 'text-text-muted/50'
-          }`}
-          style={{ top: `${ratioFor(tick.ms, window) * 100}%` }}
+    <div className="relative flex shrink-0" style={{ width: `${widthPx}px` }}>
+      {zones.map((zone, index) => (
+        <div
+          key={zone ?? 'local'}
+          className="relative"
+          style={{ width: `${GUTTER_COLUMN_WIDTH_PX}px` }}
         >
-          {formatClockTime(new Date(tick.ms).toISOString())}
-        </span>
+          {ticks.map((tick) => (
+            <span
+              key={tick.ms}
+              className={`tabular absolute right-1.5 -translate-y-1/2 font-mono text-[10px] ${
+                tick.major ? 'text-text-muted' : 'text-text-muted/50'
+              } ${index > 0 ? 'opacity-70' : ''}`}
+              style={{ top: `${ratioFor(tick.ms, window) * 100}%` }}
+            >
+              {formatClockTime(new Date(tick.ms).toISOString(), zone)}
+            </span>
+          ))}
+        </div>
       ))}
     </div>
   )

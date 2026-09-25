@@ -15,6 +15,7 @@ export function MergedView({ snapshot, onJoin }: MergedViewProps): JSX.Element {
       window={windowOf(snapshot)}
       nowIso={snapshot.now}
       lanes={[{ key: 'merged', items: snapshot.timed }]}
+      secondaryTimeZone={snapshot.secondaryTimeZone}
       onJoin={onJoin}
     />
   )

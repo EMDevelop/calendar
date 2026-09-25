@@ -23,6 +23,7 @@ function snapshot(nextUp: AgendaItem | null): AgendaSnapshot {
   return {
     now: '2026-09-25T09:56:00.000Z',
     window: { start: '2026-09-25T06:00:00.000Z', end: '2026-09-25T21:00:00.000Z' },
+    secondaryTimeZone: null,
     timed: nextUp ? [nextUp] : [],
     allDay: [],
     accounts: [],

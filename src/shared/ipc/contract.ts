@@ -7,6 +7,7 @@ import {
   MIN_SYNC_INTERVAL_MINUTES,
 } from '../constants.ts'
 import { CHANNELS } from './channels.ts'
+import { isValidTimeZone } from '../timezone.ts'
 
 /**
  * One schema per channel. Types vanish at runtime, so main validates every
@@ -19,6 +20,13 @@ const label = z.string().min(1).max(120)
 const isoTimestamp = z.string().min(1).max(40)
 const colour = z.enum(ACCOUNT_COLOURS)
 const noPayload = z.undefined()
+
+/** Only zones the runtime actually knows; anything else is rejected (§8.5). */
+const timeZoneName = z
+  .string()
+  .min(1)
+  .max(64)
+  .refine(isValidTimeZone, { message: 'unknown time zone' })
 
 export const accountIdPayloadSchema = z.strictObject({ accountId: identifier })
 export const connectAccountSchema = z.strictObject({ provider: z.literal('google') })
@@ -58,6 +66,7 @@ export const updateSettingsSchema = z
     notificationLeadMinutes: z.number().int().min(0).max(MAX_NOTIFICATION_LEAD_MINUTES).nullable(),
     dayStartHour: z.number().int().min(0).max(23),
     dayEndHour: z.number().int().min(1).max(24),
+    secondaryTimeZone: timeZoneName.nullable(),
     hideTitlesInMenuBar: z.boolean(),
     privacyMode: z.boolean(),
     launchAtLogin: z.boolean(),
@@ -116,6 +125,7 @@ export const agendaAccountSchema = z.strictObject({
 export const agendaSnapshotSchema = z.strictObject({
   now: isoTimestamp,
   window: z.strictObject({ start: isoTimestamp, end: isoTimestamp }),
+  secondaryTimeZone: timeZoneName.nullable(),
   timed: z.array(agendaItemSchema),
   allDay: z.array(agendaItemSchema),
   accounts: z.array(agendaAccountSchema),
@@ -179,6 +189,7 @@ export const appSettingsSchema = z.strictObject({
   notificationLeadMinutes: z.number().int().min(0).max(MAX_NOTIFICATION_LEAD_MINUTES).nullable(),
   dayStartHour: z.number().int().min(0).max(23),
   dayEndHour: z.number().int().min(1).max(24),
+  secondaryTimeZone: timeZoneName.nullable(),
   hideTitlesInMenuBar: z.boolean(),
   privacyMode: z.boolean(),
   launchAtLogin: z.boolean(),

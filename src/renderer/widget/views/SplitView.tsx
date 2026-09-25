@@ -23,6 +23,7 @@ export function SplitView({ snapshot, onJoin }: SplitViewProps): JSX.Element {
         colour: account.colour,
         items: snapshot.timed.filter((item) => item.accountId === account.id),
       }))}
+      secondaryTimeZone={snapshot.secondaryTimeZone}
       onJoin={onJoin}
     />
   )

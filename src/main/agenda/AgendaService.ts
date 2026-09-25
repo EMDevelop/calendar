@@ -121,6 +121,7 @@ export class AgendaService {
         start: new Date(window.startMs).toISOString(),
         end: new Date(window.endMs).toISOString(),
       },
+      secondaryTimeZone: settings.secondaryTimeZone,
       timed: timedItems,
       allDay: allDay.map(enrich),
       accounts: agendaAccounts,

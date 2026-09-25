@@ -40,6 +40,8 @@ export interface AgendaSnapshot {
   readonly now: string
   /** The span the timeline draws, resolved in main so it owns time (§5). */
   readonly window: { readonly start: string; readonly end: string }
+  /** Extra zone to label the time gutter with, or null for local time only. */
+  readonly secondaryTimeZone: string | null
   readonly timed: readonly AgendaItem[]
   readonly allDay: readonly AgendaItem[]
   readonly accounts: readonly AgendaAccount[]

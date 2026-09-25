@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notificationLeadMinutes: DEFAULT_NOTIFICATION_LEAD_MINUTES,
   dayStartHour: DEFAULT_DAY_START_HOUR,
   dayEndHour: DEFAULT_DAY_END_HOUR,
+  secondaryTimeZone: null,
   hideTitlesInMenuBar: false,
   privacyMode: false,
   launchAtLogin: false,

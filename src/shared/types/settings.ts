@@ -30,6 +30,8 @@ export interface AppSettings {
   /** Hours the timeline shows by default; it widens for events outside them. */
   readonly dayStartHour: number
   readonly dayEndHour: number
+  /** A second IANA zone shown alongside local time, or null for one column. */
+  readonly secondaryTimeZone: string | null
   readonly hideTitlesInMenuBar: boolean
   readonly privacyMode: boolean
   readonly launchAtLogin: boolean
