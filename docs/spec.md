@@ -722,8 +722,24 @@ node -v  # v24.x
 npm -v   # 11.19 or later
 ```
 
-- If nvm still loads in your shell, it can put Node 20 back in front of `node@24`. Remove nvm's lines from `~/.zshrc`, or run `nvm deactivate` before working on this project.
+- If nvm still loads in your shell, it can put Node 20 back in front of `node@24`. Remove nvm's lines from `~/.zshrc`, or run `nvm deactivate` before working on this project. `npm run dev`, `build`, `icons` and `spike:oauth` all refuse to run on the wrong version rather than failing cryptically.
 - If a formula is blocked, `brew install` prints `forbidden by your Workbrew administrator`. Ask IT for it by name, using this list.
+
+### Known issue on this machine: npm cannot verify TLS
+
+`npm install` fails every request with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, and hangs while it retries.
+
+The cause is not npm. Homebrew's `node@24` is built against shared OpenSSL, which reads its trust store from `/opt/homebrew/etc/openssl@3/cert.pem`. That symlink points at `/opt/homebrew/etc/ca-certificates/cert.pem`, which does not exist: the `ca-certificates` formula is installed, but the post-install step that builds the bundle never ran. Any Homebrew tool that uses shared OpenSSL is affected, not just this project.
+
+Workaround, per command or per shell:
+
+```sh
+export NODE_OPTIONS="--use-bundled-ca"
+```
+
+That tells Node to use its own embedded CA list instead of the missing system one.
+
+The real fix is `brew postinstall ca-certificates`, which regenerates the bundle. It is left undone deliberately: this is a Workbrew-managed install, so it is IT's call.
 
 ### Outside Workbrew — check these separately
 

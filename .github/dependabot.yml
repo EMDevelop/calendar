@@ -21,6 +21,10 @@ updates:
       # @vitejs/plugin-react 6 requires vite 8.
       - dependency-name: '@vitejs/plugin-react'
         versions: ['>=6']
+      # Node types must describe the runtime we actually run, which is Node 24.
+      # Newer types promise APIs that would not exist at runtime.
+      - dependency-name: '@types/node'
+        versions: ['>=25']
 
   - package-ecosystem: github-actions
     directory: /
