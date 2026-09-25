@@ -9,6 +9,18 @@ updates:
     cooldown:
       default-days: 3
     open-pull-requests-limit: 5
+    # These majors are held back deliberately (docs/spec.md §1). CI already
+    # proves each one breaks; ignoring them keeps the PR list meaningful.
+    ignore:
+      # typescript-eslint supports <6.1, and its type-aware rules are required.
+      - dependency-name: typescript
+        versions: ['>=7']
+      # electron-vite 5 peers on vite ^5 || ^6 || ^7.
+      - dependency-name: vite
+        versions: ['>=8']
+      # @vitejs/plugin-react 6 requires vite 8.
+      - dependency-name: '@vitejs/plugin-react'
+        versions: ['>=6']
 
   - package-ecosystem: github-actions
     directory: /

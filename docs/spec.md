@@ -658,8 +658,8 @@ engine-strict=true
 
 - Sign with a Developer ID certificate, enable the hardened runtime, notarise and staple — all through `electron-builder`.
 - `release.yml`: git tag → build → sign → notarise → `.dmg` on GitHub Releases.
-- Create the public tap `<you>/homebrew-tap` with `Casks/<app>.rb`, including a `zap` stanza (§8.2).
-- Ask the Workbrew admin for an Allowed Taps policy (§11). Colleagues install with `brew install --cask <you>/tap/<app>`, and `brew upgrade` delivers updates.
+- Create the public tap `EMDevelop/homebrew-tap` with `Casks/pinned-calendar.rb`, including a `zap` stanza (§8.2).
+- Ask the Workbrew admin for an Allowed Taps policy (§11). Colleagues install with `brew install --cask EMDevelop/tap/pinned-calendar`, and `brew upgrade` delivers updates.
 
 **Phase 5 — Public Homebrew.** Google OAuth verification (homepage, privacy policy, demo video, scope justification) to lift the 100-user cap and remove the "unverified app" warning. A README with install instructions. Submit to the official `homebrew/cask` only once the app is popular enough to meet its notability rules.
 
@@ -739,11 +739,11 @@ npm -v   # 11.19 or later
 
 ### Ask the Workbrew admin (Phase 4)
 
-- **An Allowed Taps policy for `<you>/tap`.** Since Homebrew 6, Homebrew ignores third-party taps that aren't trusted, and standard users can't trust one themselves. An Allowed Taps policy both permits installs from the tap and trusts it on the targeted devices.
-- **Optionally,** add `cask "<you>/tap/<app>"` to a Default Packages Brewfile for your team's device group, so it installs automatically.
+- **An Allowed Taps policy for `EMDevelop/tap`.** Since Homebrew 6, Homebrew ignores third-party taps that aren't trusted, and standard users can't trust one themselves. An Allowed Taps policy both permits installs from the tap and trusts it on the targeted devices.
+- **Optionally,** add `cask "EMDevelop/tap/pinned-calendar"` to a Default Packages Brewfile for your team's device group, so it installs automatically.
 - **Not Workbrew's Private Taps.** That feature is Enterprise-only, needs a private repo, and devices only get a new release after an admin clicks "Sync Now" in the Workbrew Console. A public tap updates by itself.
 
-Outside Workbrew, anyone can run `brew install --cask <you>/tap/<app>`; naming the tap in full is enough for Homebrew to trust that one cask.
+Outside Workbrew, anyone can run `brew install --cask EMDevelop/tap/pinned-calendar`; naming the tap in full is enough for Homebrew to trust that one cask.
 
 ### Apple Developer account — when you need it
 
@@ -785,5 +785,13 @@ Recorded as the code was written, so this document stays true to the repository.
 **Still to confirm**
 
 - **Bundle id** is `com.pinnedcalendar.app`. §10 says fix this before Phase 2, because the Keychain item, notification permission and login item are keyed to it.
-- **The GitHub owner** for the tap and release URLs is still `<you>` in this document.
+- **The repository is `EMDevelop/calendar`**, so the public site lives at
+  `https://emdevelop.github.io/calendar/` with the privacy policy at
+  `.../privacy.html`. Those are the two URLs the Google Branding page needs before
+  the app can leave Testing (§9, Phase 0). The Homebrew tap will be a separate
+  repository, `EMDevelop/homebrew-tap`.
+- **`github.io` may not survive verification.** It is fine for switching to
+  production now, but it is a shared domain that cannot be proved in Search
+  Console, which Phase 5 brand verification asks for. If that becomes a blocker,
+  move the two pages to a domain you own; nothing else changes.
 - **Entitlements** are `allow-jit` only. If a signed build fails, add the minimum needed and record the reason here (§8.8).
