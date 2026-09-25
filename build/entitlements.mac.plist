@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Minimal hardened-runtime entitlements (docs/spec.md §8.8).
+
+  V8 needs JIT. Nothing else is granted: no disable-library-validation and no
+  allow-dyld-environment-variables, because each one reopens a code-injection
+  path. Add an entitlement only if a signed build genuinely fails without it,
+  and record the reason in the spec.
+-->
+<plist version="1.0">
+  <dict>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+  </dict>
+</plist>

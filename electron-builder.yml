@@ -1,0 +1,51 @@
+appId: com.pinnedcalendar.app
+productName: Pinned Calendar
+copyright: Copyright © 2026
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - out/**
+  # Referenced from main via ?asset, which resolves at runtime rather than
+  # copying into out/ (electron-vite public directory).
+  - resources/**
+  - package.json
+
+# Runtime integrity (docs/spec.md §8.8).
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+  enableCookieEncryption: true
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    # Menu-bar app: no Dock icon (§10).
+    LSUIElement: true
+  # Turned on in the release workflow, which supplies the Apple API key.
+  # Signing and notarisation need an Apple Developer account (§11).
+  notarize: false
+
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
+# Where the release workflow uploads the DMG. The app itself never checks for
+# updates: there is no electron-updater and no update server. Homebrew is the
+# update channel, and the cask pins a SHA-256 per release (§8.8).
+publish:
+  provider: github
+  releaseType: release

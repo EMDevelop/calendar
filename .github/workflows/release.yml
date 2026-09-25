@@ -1,0 +1,50 @@
+name: Release
+
+# Tag a version to build, sign, notarise and publish the DMG (docs/spec.md §9,
+# Phase 4). Signing needs an Apple Developer account and the secrets below;
+# without them this workflow will fail, which is intended.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: macos-15
+    environment: release
+    permissions:
+      contents: write # create the GitHub Release
+    steps:
+      - name: Check out
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch Electron binary
+        run: node node_modules/electron/install.js
+
+      - name: Verify registry signatures
+        run: npm audit signatures
+
+      - name: Build, sign and notarise
+        run: npx electron-builder --mac --publish always
+        env:
+          # The OAuth client is injected at build time and never committed (§8.3).
+          MAIN_VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          MAIN_VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # Developer ID certificate and the App Store Connect key for notarytool (§11).
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          GH_TOKEN: ${{ github.token }}
