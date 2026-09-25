@@ -56,6 +56,8 @@ export const updateSettingsSchema = z
       .min(MIN_SYNC_INTERVAL_MINUTES)
       .max(MAX_SYNC_INTERVAL_MINUTES),
     notificationLeadMinutes: z.number().int().min(0).max(MAX_NOTIFICATION_LEAD_MINUTES).nullable(),
+    dayStartHour: z.number().int().min(0).max(23),
+    dayEndHour: z.number().int().min(1).max(24),
     hideTitlesInMenuBar: z.boolean(),
     privacyMode: z.boolean(),
     launchAtLogin: z.boolean(),
@@ -113,6 +115,7 @@ export const agendaAccountSchema = z.strictObject({
 
 export const agendaSnapshotSchema = z.strictObject({
   now: isoTimestamp,
+  window: z.strictObject({ start: isoTimestamp, end: isoTimestamp }),
   timed: z.array(agendaItemSchema),
   allDay: z.array(agendaItemSchema),
   accounts: z.array(agendaAccountSchema),
@@ -174,6 +177,8 @@ export const appSettingsSchema = z.strictObject({
     .min(MIN_SYNC_INTERVAL_MINUTES)
     .max(MAX_SYNC_INTERVAL_MINUTES),
   notificationLeadMinutes: z.number().int().min(0).max(MAX_NOTIFICATION_LEAD_MINUTES).nullable(),
+  dayStartHour: z.number().int().min(0).max(23),
+  dayEndHour: z.number().int().min(1).max(24),
   hideTitlesInMenuBar: z.boolean(),
   privacyMode: z.boolean(),
   launchAtLogin: z.boolean(),

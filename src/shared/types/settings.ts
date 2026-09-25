@@ -27,6 +27,9 @@ export interface AppSettings {
   readonly syncIntervalMinutes: number
   /** Null disables meeting notifications. */
   readonly notificationLeadMinutes: number | null
+  /** Hours the timeline shows by default; it widens for events outside them. */
+  readonly dayStartHour: number
+  readonly dayEndHour: number
   readonly hideTitlesInMenuBar: boolean
   readonly privacyMode: boolean
   readonly launchAtLogin: boolean

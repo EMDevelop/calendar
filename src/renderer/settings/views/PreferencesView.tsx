@@ -63,6 +63,26 @@ export function PreferencesView({ state }: PreferencesViewProps): JSX.Element {
         />
       </Row>
 
+      <Row
+        label="Day starts at"
+        hint="The timeline widens automatically for anything outside these hours."
+      >
+        <HourSelect
+          value={settings.dayStartHour}
+          max={23}
+          onChange={(hour) => void state.update({ dayStartHour: hour })}
+        />
+      </Row>
+
+      <Row label="Day ends at">
+        <HourSelect
+          value={settings.dayEndHour}
+          min={1}
+          max={24}
+          onChange={(hour) => void state.update({ dayEndHour: hour })}
+        />
+      </Row>
+
       <Row label="Notify before" hint="Set to off to stop meeting notifications.">
         <select
           value={settings.notificationLeadMinutes ?? 'off'}
@@ -117,6 +137,33 @@ export function PreferencesView({ state }: PreferencesViewProps): JSX.Element {
         Sync now
       </button>
     </section>
+  )
+}
+
+interface HourSelectProps {
+  readonly value: number
+  readonly min?: number
+  readonly max: number
+  readonly onChange: (hour: number) => void
+}
+
+function HourSelect({ value, min = 0, max, onChange }: HourSelectProps): JSX.Element {
+  const hours = Array.from({ length: max - min + 1 }, (_unused, index) => min + index)
+
+  return (
+    <select
+      value={value}
+      onChange={(event) => {
+        onChange(Number(event.target.value))
+      }}
+      className="w-24 rounded border border-border bg-bg px-2 py-1 text-sm"
+    >
+      {hours.map((hour) => (
+        <option key={hour} value={hour}>
+          {`${String(hour).padStart(2, '0')}:00`}
+        </option>
+      ))}
+    </select>
   )
 }
 

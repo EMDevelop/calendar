@@ -1,6 +1,8 @@
 import { appSettingsSchema } from '../../shared/ipc/contract.ts'
 import {
   ACCOUNT_COLOURS,
+  DEFAULT_DAY_END_HOUR,
+  DEFAULT_DAY_START_HOUR,
   DEFAULT_NOTIFICATION_LEAD_MINUTES,
   DEFAULT_SYNC_INTERVAL_MINUTES,
 } from '../../shared/constants.ts'
@@ -25,6 +27,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   syncIntervalMinutes: DEFAULT_SYNC_INTERVAL_MINUTES,
   notificationLeadMinutes: DEFAULT_NOTIFICATION_LEAD_MINUTES,
+  dayStartHour: DEFAULT_DAY_START_HOUR,
+  dayEndHour: DEFAULT_DAY_END_HOUR,
   hideTitlesInMenuBar: false,
   privacyMode: false,
   launchAtLogin: false,
@@ -41,13 +45,27 @@ export const DEFAULT_STATE: PersistedState = {
 /**
  * A corrupt or hand-edited settings file must not crash startup or, worse,
  * hand unvalidated values to the rest of the app.
+ *
+ * Known fields are taken from the stored file, anything missing falls back to
+ * its default, and anything unrecognised is dropped. That matters on upgrade:
+ * a strict parse of an older file would fail, and the fallback would quietly
+ * reset the settings — disconnecting the user's accounts.
  */
 export function parseSettings(candidate: unknown): AppSettings {
-  const result = appSettingsSchema.safeParse(candidate)
-  if (!result.success) {
+  if (typeof candidate !== 'object' || candidate === null) {
     return DEFAULT_SETTINGS
   }
-  return result.data
+
+  const stored = candidate as Readonly<Record<string, unknown>>
+  const known: Record<string, unknown> = { ...DEFAULT_SETTINGS }
+  for (const key of Object.keys(DEFAULT_SETTINGS)) {
+    if (key in stored) {
+      known[key] = stored[key]
+    }
+  }
+
+  const result = appSettingsSchema.safeParse(known)
+  return result.success ? result.data : DEFAULT_SETTINGS
 }
 
 /** Fixed rotation, first unused colour wins (§6). */

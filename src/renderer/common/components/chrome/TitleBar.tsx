@@ -1,8 +1,10 @@
 import type { JSX } from 'react'
+import { formatClockTime, formatDayLabel } from '../../lib/formatTime.ts'
 
 interface TitleBarProps {
   readonly pinned: boolean
   readonly privacyMode: boolean
+  readonly nowIso: string
   readonly onTogglePin: () => void
   readonly onHide: () => void
   readonly onOpenSettings: () => void
@@ -15,14 +17,20 @@ interface TitleBarProps {
 export function TitleBar({
   pinned,
   privacyMode,
+  nowIso,
   onTogglePin,
   onHide,
   onOpenSettings,
 }: TitleBarProps): JSX.Element {
   return (
     <header className="drag-region flex items-center gap-2 border-b border-border px-3 py-1.5">
-      <span className="flex-1 truncate text-[11px] font-medium text-text-muted">
-        Today{privacyMode ? ' · private' : ''}
+      {/* The clock anchors the timeline below it (§6). */}
+      <span className="tabular shrink-0 font-mono text-[13px] font-medium">
+        {formatClockTime(nowIso)}
+      </span>
+      <span className="flex-1 truncate text-[11px] text-text-muted">
+        {formatDayLabel(nowIso)}
+        {privacyMode ? ' · private' : ''}
       </span>
 
       <TitleBarButton

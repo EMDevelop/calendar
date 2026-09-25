@@ -44,6 +44,7 @@ export function WidgetApp(): JSX.Element {
       <TitleBar
         pinned={pinned}
         privacyMode={snapshot.privacyMode}
+        nowIso={snapshot.now}
         onTogglePin={togglePin}
         onHide={() => void widgetApi().hide()}
         onOpenSettings={() => void widgetApi().openSettings()}

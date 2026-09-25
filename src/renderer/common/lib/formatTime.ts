@@ -3,6 +3,20 @@ const timeFormatter = new Intl.DateTimeFormat(undefined, {
   minute: '2-digit',
 })
 
+const dayFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
+
+export function formatDayLabel(iso: string): string {
+  const parsed = Date.parse(iso)
+  if (Number.isNaN(parsed)) {
+    return 'Today'
+  }
+  return dayFormatter.format(new Date(parsed))
+}
+
 export function formatClockTime(iso: string): string {
   const parsed = Date.parse(iso)
   if (Number.isNaN(parsed)) {

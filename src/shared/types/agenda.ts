@@ -38,6 +38,8 @@ export interface AgendaAccount {
  */
 export interface AgendaSnapshot {
   readonly now: string
+  /** The span the timeline draws, resolved in main so it owns time (§5). */
+  readonly window: { readonly start: string; readonly end: string }
   readonly timed: readonly AgendaItem[]
   readonly allDay: readonly AgendaItem[]
   readonly accounts: readonly AgendaAccount[]

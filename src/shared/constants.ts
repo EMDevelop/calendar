@@ -12,6 +12,10 @@ export const MAX_SYNC_INTERVAL_MINUTES = 15
 export const DEFAULT_NOTIFICATION_LEAD_MINUTES = 1
 export const MAX_NOTIFICATION_LEAD_MINUTES = 15
 
+/** The timeline's default span; it widens for events outside it (§6). */
+export const DEFAULT_DAY_START_HOUR = 7
+export const DEFAULT_DAY_END_HOUR = 22
+
 /** Below this width, split view collapses to merged (§6). */
 export const SPLIT_VIEW_MIN_WIDTH = 520
 

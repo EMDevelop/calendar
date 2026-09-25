@@ -3,6 +3,7 @@ import type { AgendaAccount, AgendaItem, AgendaSnapshot } from '../../shared/typ
 import type { AccountId, CalendarEvent, EventId } from '../../shared/types/calendar.ts'
 import { dedupeForMergedView, partitionByAllDay, sortEvents } from '../calendar/EventAggregator.ts'
 import { findNextUp, toAgendaItem } from '../calendar/EventEnricher.ts'
+import { resolveDayWindow } from '../../shared/timeline.ts'
 import { Signal } from '../infra/Signal.ts'
 import type { SettingsReader } from '../storage/SettingsStore.ts'
 
@@ -109,8 +110,17 @@ export class AgendaService {
       lastSyncedAt: this.getLastSyncedAt(account.id),
     }))
 
+    const window = resolveDayWindow(now, timed, {
+      startHour: settings.dayStartHour,
+      endHour: settings.dayEndHour,
+    })
+
     return {
       now: now.toISOString(),
+      window: {
+        start: new Date(window.startMs).toISOString(),
+        end: new Date(window.endMs).toISOString(),
+      },
       timed: timedItems,
       allDay: allDay.map(enrich),
       accounts: agendaAccounts,
