@@ -6,7 +6,7 @@
 
 **Stack:** Electron + TypeScript + React + Tailwind. Google Calendar first — a work Workspace account and a personal Gmail account — behind a provider interface, so another source can be added later without a rewrite.
 
-**Who it's for:** you and colleagues through the company's Workbrew first, then anyone through a public Homebrew tap.
+**Who it's for:** yourself first, then colleagues who want it, then anyone, through a public Homebrew tap.
 
 **Security comes first.** Calendar tokens are work credentials. Token handling (§8.2) outranks every other requirement in this document, and the app exposes no attack surface it doesn't need (§8.1).
 
@@ -141,7 +141,7 @@ calendar-widget/
 ├── tsconfig.web.json                # renderers, DOM target
 ├── .npmrc                           # supply-chain settings (§8.9)
 ├── .env.example                     # names of build-time config values, never real values
-├── Brewfile                         # dev toolchain through Workbrew (§11)
+├── Brewfile                         # dev toolchain, installed with Homebrew (§11)
 ├── build/
 │   ├── entitlements.mac.plist       # hardened-runtime entitlements, minimal (§8.8)
 │   └── icon.icns
@@ -642,7 +642,7 @@ engine-strict=true
 
 **Phase 0 — Toolchain and OAuth spike (go / no-go).** Decides whether the rest is worth building.
 
-1. Install the toolchain through Workbrew (`brew bundle`, §11) and switch the project to `node@24`.
+1. Install the toolchain with Homebrew (`brew bundle`, §11) and switch the project to `node@24`.
 2. Run `npm run setup` on your network and confirm the Electron binary downloads — corporate networks sometimes block GitHub release assets (§11).
 3. Create a Google Cloud project with your personal Google account, enable the Calendar API, configure the consent screen (External, In production) and create a Desktop OAuth client (§8.3).
 4. Write a throwaway script — not app code — that signs in through the system browser with PKCE for the work account and the personal account, calls `calendarList.list` and today's `events.list` with the granular scopes, then restarts and proves the stored refresh token still works.
@@ -654,12 +654,12 @@ engine-strict=true
 
 **Phase 3 — Work + personal.** `ProviderRegistry` populated from settings, account management UI, split view, per-account colours, cross-account dedupe.
 
-**Phase 4 — Colleagues through Workbrew.** Needs an Apple Developer account (§11).
+**Phase 4 — Sharing it with colleagues.** Needs an Apple Developer account (§11).
 
 - Sign with a Developer ID certificate, enable the hardened runtime, notarise and staple — all through `electron-builder`.
 - `release.yml`: git tag → build → sign → notarise → `.dmg` on GitHub Releases.
 - Create the public tap `EMDevelop/homebrew-tap` with `Casks/pinned-calendar.rb`, including a `zap` stanza (§8.2).
-- Ask the Workbrew admin for an Allowed Taps policy (§11). Colleagues install with `brew install --cask EMDevelop/tap/pinned-calendar`, and `brew upgrade` delivers updates.
+- Colleagues install with `brew install --cask EMDevelop/tap/pinned-calendar`, and `brew upgrade` delivers updates. On a centrally managed Mac the tap may also need to be allowed by policy (§11).
 
 **Phase 5 — Public Homebrew.** Google OAuth verification (homepage, privacy policy, demo video, scope justification) to lift the 100-user cap and remove the "unverified app" warning. A README with install instructions. Submit to the official `homebrew/cask` only once the app is popular enough to meet its notability rules.
 
@@ -689,22 +689,22 @@ engine-strict=true
 
 ---
 
-## 11. Toolchain and Workbrew checklist
+## 11. Toolchain checklist
 
-Everything the build needs, where it comes from, and what to ask for.
+Everything the build needs and where it comes from.
 
-### Already on your Mac (checked 25 Sep 2026)
+### Prerequisites
 
-- macOS 26.6 on Apple silicon (arm64)
-- Workbrew-managed Homebrew at `/opt/workbrew/bin/brew`
-- Xcode at `/Applications/Xcode.app`: `codesign`, `xcrun notarytool`, `xcrun stapler` and `swift` — enough for signing, notarisation and a future EventKit helper
-- git (Apple's, at `/usr/bin/git`)
+- macOS on Apple silicon (arm64)
+- Homebrew
+- Xcode: `codesign`, `xcrun notarytool`, `xcrun stapler` and `swift` — enough for signing, notarisation and a future EventKit helper
+- git
 
 ### Replace
 
-- **Node 20.19.5 from nvm.** It's been end-of-life since 30 April 2026, and nvm installs Node outside Workbrew. Use Workbrew's `node@24` for this project: Node 24 is LTS until April 2028, and it's the same Node that Electron 44 embeds (24.21).
+- **Any Node older than 24.** Node 20 reached end of life on 30 April 2026 and cannot run this repo's `.ts` scripts. Use Homebrew's `node@24`: it is LTS until April 2028, and it is the same Node that Electron 44 embeds (24.21). If a version manager such as nvm is installed, it will shadow Homebrew's Node — see the note below.
 
-### Install through Workbrew
+### Install with Homebrew
 
 `Brewfile` (repo root, created in Phase 0):
 
@@ -722,10 +722,10 @@ node -v  # v24.x
 npm -v   # 11.19 or later
 ```
 
-- If nvm still loads in your shell, it can put Node 20 back in front of `node@24`. Remove nvm's lines from `~/.zshrc`, or run `nvm deactivate` before working on this project. `npm run dev`, `build`, `icons` and `spike:oauth` all refuse to run on the wrong version rather than failing cryptically.
-- If a formula is blocked, `brew install` prints `forbidden by your Workbrew administrator`. Ask IT for it by name, using this list.
+- If a version manager loads in your shell, it can put its own Node back in front of `node@24`. Remove its lines from your shell profile, or deactivate it before working on this project. `npm run dev`, `build`, `icons` and `spike:oauth` all refuse to run on the wrong version rather than failing cryptically.
+- On a centrally managed Mac, installs can be restricted by policy. If `brew install` reports a formula is forbidden, the list above is what to request.
 
-### Known issue on this machine: npm cannot verify TLS
+### If npm cannot verify TLS
 
 `npm install` fails every request with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`, and hangs while it retries.
 
@@ -739,31 +739,28 @@ export NODE_OPTIONS="--use-bundled-ca"
 
 That tells Node to use its own embedded CA list instead of the missing system one.
 
-The real fix is `brew postinstall ca-certificates`, which regenerates the bundle. It is left undone deliberately: this is a Workbrew-managed install, so it is IT's call.
+The real fix is `brew postinstall ca-certificates`, which regenerates the bundle. On a centrally managed Mac that is the administrator's call, so the workaround above may be the practical option.
 
-### Outside Workbrew — check these separately
+### Not from Homebrew — check these separately
 
-| Need                                | Where it comes from                                         | What to check or ask                                         |
-| ----------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
-| npm packages                        | registry.npmjs.org, or a company mirror                     | `npm ping`. If IT runs a mirror, set `registry=` in `.npmrc` |
-| Electron binary                     | GitHub release assets, downloaded by `npm run setup`        | If blocked, set `ELECTRON_MIRROR` to an approved mirror      |
-| `electron-builder` helper tools     | GitHub release assets, downloaded at package time           | Same as the Electron binary                                  |
-| Google Cloud project + OAuth client | console.cloud.google.com, with your personal Google account | Nothing to request                                           |
-| Work calendar access                | Your Google Workspace admin                                 | May need to trust the OAuth client ID; Phase 0 tells you     |
-| Repo, Actions, secrets              | github.com                                                  | Public repo, so macOS runners are free                       |
-| Apple Developer Program             | developer.apple.com                                         | Only for distribution — see below                            |
+| Need                                | Where it comes from                                  | What to check                                          |
+| ----------------------------------- | ---------------------------------------------------- | ------------------------------------------------------ |
+| npm packages                        | registry.npmjs.org, or a mirror                      | `npm ping`. With a mirror, set `registry=` in `.npmrc` |
+| Electron binary                     | GitHub release assets, downloaded by `npm run setup` | If blocked, set `ELECTRON_MIRROR`                      |
+| `electron-builder` helper tools     | GitHub release assets, downloaded at package time    | Same as the Electron binary                            |
+| Google Cloud project + OAuth client | console.cloud.google.com                             | Created under whichever account will own the app       |
+| Repo, Actions, Pages                | github.com                                           | Public repo, so macOS runners and Pages are free       |
+| Apple Developer Program             | developer.apple.com                                  | Only for distribution — see below                      |
 
-### Ask the Workbrew admin (Phase 4)
+### Installing from the tap
 
-- **An Allowed Taps policy for `EMDevelop/tap`.** Since Homebrew 6, Homebrew ignores third-party taps that aren't trusted, and standard users can't trust one themselves. An Allowed Taps policy both permits installs from the tap and trusts it on the targeted devices.
-- **Optionally,** add `cask "EMDevelop/tap/pinned-calendar"` to a Default Packages Brewfile for your team's device group, so it installs automatically.
-- **Not Workbrew's Private Taps.** That feature is Enterprise-only, needs a private repo, and devices only get a new release after an admin clicks "Sync Now" in the Workbrew Console. A public tap updates by itself.
+Anyone can install with `brew install --cask EMDevelop/tap/pinned-calendar`. Naming the tap in full is enough for Homebrew to trust that one cask.
 
-Outside Workbrew, anyone can run `brew install --cask EMDevelop/tap/pinned-calendar`; naming the tap in full is enough for Homebrew to trust that one cask.
+Since Homebrew 6, packages from an untrusted third-party tap are ignored, and on a Mac where the user is not an administrator they cannot grant that trust themselves. Fleets managed centrally therefore need the tap allowed by whatever manages them, which is a Phase 4 conversation rather than a code change.
 
 ### Apple Developer account — when you need it
 
-> To give the app to anyone but yourself (Workbrew tap or public Homebrew), you need Apple Developer Program membership ($99/yr) for a Developer ID certificate and notarisation. Since 1 Sep 2026 Homebrew disables casks that fail Gatekeeper, and `--no-quarantine` is deprecated. Local builds for yourself need neither.
+> To give the app to anyone but yourself, you need Apple Developer Program membership ($99/yr) for a Developer ID certificate and notarisation. Since 1 Sep 2026 Homebrew disables casks that fail Gatekeeper, and `--no-quarantine` is deprecated. Local builds for yourself need neither.
 
 When you get it: create a **Developer ID Application** certificate and an **App Store Connect API key** for `notarytool`, then store them as GitHub Actions secrets in the release environment (`CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER`). The future EventKit integration needs a signed build too.
 
