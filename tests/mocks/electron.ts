@@ -56,6 +56,54 @@ export const app = {
   },
 }
 
+export interface NotificationAction {
+  readonly type: string
+  readonly text?: string
+}
+
+export interface NotificationOptions {
+  readonly title?: string
+  readonly subtitle?: string
+  readonly body?: string
+  readonly silent?: boolean
+  readonly actions?: NotificationAction[]
+  readonly closeButtonText?: string
+}
+
+type NotificationHandler = (...args: unknown[]) => void
+
+/** Records what the app would have shown, and lets tests fire its buttons. */
+export class Notification {
+  static supported = true
+  static readonly shown: Notification[] = []
+
+  private readonly handlers = new Map<string, NotificationHandler[]>()
+
+  constructor(readonly options: NotificationOptions) {}
+
+  static isSupported(): boolean {
+    return Notification.supported
+  }
+
+  on(event: string, handler: NotificationHandler): this {
+    const existing = this.handlers.get(event) ?? []
+    existing.push(handler)
+    this.handlers.set(event, existing)
+    return this
+  }
+
+  show(): void {
+    Notification.shown.push(this)
+  }
+
+  /** Test helper: simulate the user interacting with the notification. */
+  emit(event: string, ...args: unknown[]): void {
+    for (const handler of this.handlers.get(event) ?? []) {
+      handler(...args)
+    }
+  }
+}
+
 export interface FakeIpcEvent {
   readonly senderFrame: { readonly url: string } | null
 }
@@ -96,4 +144,6 @@ export function resetElectronMock(): void {
   safeStorageState.failDecrypt = false
   openedExternalUrls.length = 0
   ipcHandlers.clear()
+  Notification.shown.length = 0
+  Notification.supported = true
 }
