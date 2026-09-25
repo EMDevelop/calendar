@@ -56,9 +56,13 @@ export default tseslint.config(
     rules: { 'no-console': 'off' },
   },
 
-  // This config file is not part of either tsconfig, so it cannot be type-checked.
+  // Plain JS files sit outside both tsconfigs, so they cannot be type-checked.
   {
-    files: ['**/*.js'],
+    files: ['**/*.js', '**/*.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      parserOptions: { projectService: false, project: false },
+      globals: { process: 'readonly', console: 'readonly' },
+    },
   },
 )
