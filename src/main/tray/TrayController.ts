@@ -71,9 +71,9 @@ export class TrayController {
 
     this.tray = new Tray(icon)
     this.tray.setToolTip('Pinned Calendar')
-    this.tray.on('click', () => {
-      this.actions.toggleWidget()
-    })
+    // No click handler: with a context menu attached, macOS opens the menu on
+    // click, and a competing handler would toggle the widget invisibly at the
+    // same time. Show / Hide is the first item in the menu instead.
     this.rebuildMenu()
   }
 
