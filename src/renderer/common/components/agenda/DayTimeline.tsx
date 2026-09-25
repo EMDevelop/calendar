@@ -288,7 +288,9 @@ function NowLine({ ratio, label }: { ratio: number; label: string }): JSX.Elemen
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 z-20 flex items-center"
+      // Centred on the instant it marks. Positioning by the top edge drew the
+      // line about half its own height late, which at this scale is minutes.
+      className="pointer-events-none absolute inset-x-0 z-20 flex -translate-y-1/2 items-center"
       style={{ top: `${ratio * 100}%` }}
     >
       <span className="-ml-1 size-1.5 shrink-0 rounded-full bg-urgent" />

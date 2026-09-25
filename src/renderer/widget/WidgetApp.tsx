@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type JSX } from 'react'
 import { SPLIT_VIEW_MIN_WIDTH } from '../../shared/constants.ts'
 import { AllDayStrip } from '../common/components/agenda/AllDayStrip.tsx'
+import { NextUpBar } from '../common/components/agenda/NextUpBar.tsx'
 import { EmptyState } from '../common/components/agenda/EmptyState.tsx'
 import { StatusStrip } from '../common/components/chrome/StatusStrip.tsx'
 import { TitleBar } from '../common/components/chrome/TitleBar.tsx'
@@ -49,6 +50,8 @@ export function WidgetApp(): JSX.Element {
         onHide={() => void widgetApi().hide()}
         onOpenSettings={() => void widgetApi().openSettings()}
       />
+
+      <NextUpBar nextUp={snapshot.nextUp} onJoin={join} />
 
       <AllDayStrip items={snapshot.allDay} />
 
