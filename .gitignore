@@ -4,5 +4,9 @@ dist/
 coverage/
 .env.local
 .env.*.local
+
+# Internal notes: describes company tooling and open questions, so it is kept
+# out of the public repository until those questions have been asked.
+docs/company-questions.md
 *.log
 .DS_Store
