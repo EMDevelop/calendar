@@ -1,0 +1,26 @@
+/* Palette (docs/spec.md §6). Dark follows macOS; the manual override is set in
+   main via nativeTheme.themeSource, which drives prefers-color-scheme here. */
+
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f8fafc; /* slate-50  */
+  --border: #e2e8f0; /* slate-200 */
+  --text: #0f172a; /* slate-900 */
+  --text-muted: #64748b; /* slate-500 */
+  --accent: #0ea5e9; /* sky-500   */
+  --urgent: #ef4444; /* red-500   */
+  --live: #10b981; /* emerald-500 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --bg-subtle: #1e293b;
+    --border: #334155;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --urgent: #f87171;
+    --live: #34d399;
+  }
+}
