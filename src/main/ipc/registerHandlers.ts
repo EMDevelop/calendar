@@ -4,11 +4,13 @@ import type { AppLogger } from '../infra/logger.ts'
 import type { SettingsStore } from '../storage/SettingsStore.ts'
 import type { SyncScheduler } from '../sync/SyncScheduler.ts'
 import type { PreferencesService } from '../system/PreferencesService.ts'
+import type { MeetingAlertWindow } from '../windows/MeetingAlertWindow.ts'
 import type { SettingsWindow } from '../windows/SettingsWindow.ts'
 import type { WidgetWindow } from '../windows/WidgetWindow.ts'
 import { IpcRouter } from './IpcRouter.ts'
 import { registerAccountHandlers } from './handlers/accountHandlers.ts'
 import { registerAgendaHandlers } from './handlers/agendaHandlers.ts'
+import { registerAlertHandlers } from './handlers/alertHandlers.ts'
 import { registerSettingsHandlers } from './handlers/settingsHandlers.ts'
 import { registerWindowHandlers } from './handlers/windowHandlers.ts'
 
@@ -21,6 +23,7 @@ import { registerWindowHandlers } from './handlers/windowHandlers.ts'
 
 export interface IpcDependencies {
   readonly joiner: MeetingJoiner
+  readonly alertWindow: MeetingAlertWindow
   readonly accounts: AccountService
   readonly widget: WidgetWindow
   readonly settingsWindow: SettingsWindow
@@ -35,6 +38,7 @@ export function registerHandlers(deps: IpcDependencies): void {
   const router = new IpcRouter(deps.devServerOrigin, deps.logger.child('ipc'))
 
   registerAgendaHandlers(router, { joiner: deps.joiner })
+  registerAlertHandlers(router, { joiner: deps.joiner, alertWindow: deps.alertWindow })
   registerAccountHandlers(router, { accounts: deps.accounts })
   registerWindowHandlers(router, {
     widget: deps.widget,

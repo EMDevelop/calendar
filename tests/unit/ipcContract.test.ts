@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CHANNELS, CHANNEL_CALLERS } from '../../src/shared/ipc/channels.ts'
+import { CHANNELS, CHANNEL_CALLERS, PUSH_CHANNELS } from '../../src/shared/ipc/channels.ts'
 import {
   REQUEST_SCHEMAS,
   joinEventSchema,
@@ -11,12 +11,16 @@ import {
 /** Types vanish at runtime, so the boundary needs real checks (docs/spec.md §8.5). */
 describe('IPC contract', () => {
   it('covers every channel the renderer can invoke', () => {
-    const invokable = Object.values(CHANNELS).filter(
-      (channel) => channel !== CHANNELS.agendaSnapshot,
-    )
+    const invokable = Object.values(CHANNELS).filter((channel) => !PUSH_CHANNELS.includes(channel))
 
     for (const channel of invokable) {
       expect(REQUEST_SCHEMAS).toHaveProperty(channel)
+    }
+  })
+
+  it('gives push channels no request schema, since nothing is sent inbound', () => {
+    for (const channel of PUSH_CHANNELS) {
+      expect(REQUEST_SCHEMAS).not.toHaveProperty(channel)
     }
   })
 

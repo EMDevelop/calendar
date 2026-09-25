@@ -21,12 +21,16 @@ export const CHANNELS = {
   settingsGet: 'settings:get',
   settingsUpdate: 'settings:update',
   syncNow: 'sync:now',
+  alertShow: 'alert:show',
+  alertJoin: 'alert:join',
+  alertDismiss: 'alert:dismiss',
+  alertTest: 'alert:test',
 } as const
 
 export type ChannelName = (typeof CHANNELS)[keyof typeof CHANNELS]
 
 /** Which renderer a channel may be invoked from. */
-export type WindowRole = 'widget' | 'settings'
+export type WindowRole = 'widget' | 'settings' | 'alert'
 
 export const CHANNEL_CALLERS: Record<ChannelName, readonly WindowRole[]> = {
   [CHANNELS.agendaSnapshot]: ['widget'],
@@ -46,14 +50,26 @@ export const CHANNEL_CALLERS: Record<ChannelName, readonly WindowRole[]> = {
   [CHANNELS.settingsGet]: ['settings'],
   [CHANNELS.settingsUpdate]: ['settings'],
   [CHANNELS.syncNow]: ['settings'],
+  [CHANNELS.alertShow]: ['alert'],
+  [CHANNELS.alertJoin]: ['alert'],
+  [CHANNELS.alertDismiss]: ['alert'],
+  [CHANNELS.alertTest]: ['settings'],
 }
+
+/**
+ * Channels main pushes to a renderer. They carry no inbound payload, so they
+ * have no request schema.
+ */
+export const PUSH_CHANNELS: readonly ChannelName[] = [CHANNELS.agendaSnapshot, CHANNELS.alertShow]
 
 /** Channels whose side effects are rate-limited in main (§8.5). */
 export const RATE_LIMITED_CHANNELS: readonly ChannelName[] = [
   CHANNELS.agendaJoin,
+  CHANNELS.alertJoin,
   CHANNELS.syncNow,
   CHANNELS.accountsConnect,
   CHANNELS.accountsReconnect,
+  CHANNELS.alertTest,
 ]
 
 export const RATE_LIMIT_WINDOW_MS = 1_000

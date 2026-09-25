@@ -95,7 +95,20 @@ export const REQUEST_SCHEMAS = {
   [CHANNELS.settingsGet]: noPayload,
   [CHANNELS.settingsUpdate]: updateSettingsSchema,
   [CHANNELS.syncNow]: noPayload,
+  [CHANNELS.alertJoin]: joinEventSchema,
+  [CHANNELS.alertDismiss]: noPayload,
+  [CHANNELS.alertTest]: noPayload,
 } as const
+
+/** What the alert window is told to display. */
+export const meetingAlertSchema = z.strictObject({
+  eventId: identifier,
+  title: z.string().max(MAX_EVENT_TITLE_LENGTH),
+  start: isoTimestamp,
+  end: isoTimestamp,
+  minutesRemaining: z.number().int(),
+  canJoin: z.boolean(),
+})
 
 /* Outbound shapes. The renderer validates these too, so a bug in main can't
  * quietly feed the UI something unexpected. */
@@ -210,3 +223,4 @@ export type MoveToDisplayRequest = z.infer<typeof moveToDisplaySchema>
 export type UpdateSettingsRequest = z.infer<typeof updateSettingsSchema>
 export type SetPinnedRequest = z.infer<typeof setPinnedSchema>
 export type JoinEventRequest = z.infer<typeof joinEventSchema>
+export type MeetingAlert = z.infer<typeof meetingAlertSchema>

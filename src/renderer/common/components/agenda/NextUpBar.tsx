@@ -22,7 +22,7 @@ export function NextUpBar({ nextUp, onJoin }: NextUpBarProps): JSX.Element | nul
 
   const live = nextUp.status === 'live'
   const timing = live
-    ? `in progress · ${formatDuration(nextUp.minutesRemaining)} left`
+    ? `${formatDuration(nextUp.minutesRemaining)} left`
     : nextUp.startsInMinutes <= 0
       ? 'starting now'
       : `in ${formatDuration(nextUp.startsInMinutes)}`
@@ -30,8 +30,19 @@ export function NextUpBar({ nextUp, onJoin }: NextUpBarProps): JSX.Element | nul
   const tone = live ? 'text-live' : nextUp.status === 'imminent' ? 'text-urgent' : 'text-text-muted'
 
   return (
-    <div className="flex items-center gap-2 border-b border-border px-3 py-1">
-      <span className={`size-1.5 shrink-0 rounded-full ${COLOUR_DOT[nextUp.colour]}`} />
+    <div
+      className={`flex items-center gap-2 border-b px-3 py-1 ${
+        live ? 'border-live/40 bg-live/10' : 'border-border'
+      }`}
+    >
+      {live ? (
+        // A coloured dot is too subtle for the one state you must not miss.
+        <span className="shrink-0 rounded-sm bg-live px-1 py-px text-[9px] font-semibold tracking-wide text-white uppercase">
+          Now
+        </span>
+      ) : (
+        <span className={`size-1.5 shrink-0 rounded-full ${COLOUR_DOT[nextUp.colour]}`} />
+      )}
       <span className="min-w-0 flex-1 truncate text-[11px] font-medium" title={nextUp.title}>
         {nextUp.title}
       </span>

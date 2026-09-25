@@ -21,6 +21,7 @@ import { LoginItem } from './system/LoginItem.ts'
 import { PreferencesService } from './system/PreferencesService.ts'
 import { SystemEvents } from './system/SystemEvents.ts'
 import { TrayController } from './tray/TrayController.ts'
+import { MeetingAlertWindow } from './windows/MeetingAlertWindow.ts'
 import { SettingsWindow } from './windows/SettingsWindow.ts'
 import { WidgetWindow } from './windows/WidgetWindow.ts'
 import { registerAppProtocol, registerAppSchemePrivileges } from './windows/appProtocol.ts'
@@ -42,6 +43,7 @@ class Application {
   private tray: TrayController | null = null
   private scheduler: SyncScheduler | null = null
   private widget: WidgetWindow | null = null
+  private alertWindow: MeetingAlertWindow | null = null
 
   constructor() {
     initialiseLogging(this.config.isDev)
@@ -133,11 +135,24 @@ class Application {
       this.logger.child('accounts'),
     )
 
+    const alertWindow = new MeetingAlertWindow(
+      {
+        preloadPath,
+        devServerUrl: this.devServerUrl,
+        isDev: this.config.isDev,
+      },
+      this.logger.child('alert'),
+    )
+    this.alertWindow = alertWindow
+
     const notifier = new MeetingNotifier(
       settings,
       joiner,
       () => {
         widget.show()
+      },
+      (alert) => {
+        void alertWindow.show(alert)
       },
       this.logger.child('notifier'),
     )
@@ -178,6 +193,7 @@ class Application {
 
     registerHandlers({
       joiner,
+      alertWindow,
       accounts,
       widget,
       settingsWindow,
@@ -218,6 +234,7 @@ class Application {
     this.clock?.stop()
     this.scheduler?.stop()
     this.tray?.destroy()
+    this.alertWindow?.close()
   }
 
   private wireSignals(parts: {

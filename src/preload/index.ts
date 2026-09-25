@@ -1,7 +1,11 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { CHANNELS, type WindowRole } from '../shared/ipc/channels.ts'
-import type { SettingsBridge, WidgetBridge } from '../shared/ipc/bridge.ts'
-import type { MoveToDisplayRequest, UpdateSettingsRequest } from '../shared/ipc/contract.ts'
+import type { AlertBridge, SettingsBridge, WidgetBridge } from '../shared/ipc/bridge.ts'
+import type {
+  MeetingAlert,
+  MoveToDisplayRequest,
+  UpdateSettingsRequest,
+} from '../shared/ipc/contract.ts'
 import type { AgendaSnapshot } from '../shared/types/agenda.ts'
 import type { AccountView } from '../shared/types/account.ts'
 import type { CalendarId, CalendarSummary } from '../shared/types/calendar.ts'
@@ -30,7 +34,32 @@ function resolveRole(): WindowRole | null {
   const candidate =
     url.protocol === 'app:' ? url.hostname : (url.pathname.split('/').filter(Boolean)[0] ?? '')
 
-  return candidate === 'widget' || candidate === 'settings' ? candidate : null
+  if (candidate === 'widget' || candidate === 'settings' || candidate === 'alert') {
+    return candidate
+  }
+  return null
+}
+
+function createAlertBridge(): AlertBridge {
+  return {
+    onAlert(listener: (alert: MeetingAlert) => void): () => void {
+      const subscription = (_event: IpcRendererEvent, alert: MeetingAlert): void => {
+        listener(alert)
+      }
+      ipcRenderer.on(CHANNELS.alertShow, subscription)
+      return () => {
+        ipcRenderer.removeListener(CHANNELS.alertShow, subscription)
+      }
+    },
+
+    async join(eventId: string): Promise<void> {
+      await ipcRenderer.invoke(CHANNELS.alertJoin, { eventId })
+    },
+
+    async dismiss(): Promise<void> {
+      await ipcRenderer.invoke(CHANNELS.alertDismiss)
+    },
+  }
 }
 
 function createWidgetBridge(): WidgetBridge {
@@ -101,6 +130,8 @@ function createSettingsBridge(): SettingsBridge {
       ipcRenderer.invoke(CHANNELS.settingsUpdate, patch) as Promise<AppSettings>,
 
     syncNow: () => ipcRenderer.invoke(CHANNELS.syncNow) as Promise<void>,
+
+    testAlert: () => ipcRenderer.invoke(CHANNELS.alertTest) as Promise<void>,
   }
 }
 
@@ -110,4 +141,7 @@ if (role === 'widget') {
 }
 if (role === 'settings') {
   contextBridge.exposeInMainWorld('settingsApi', createSettingsBridge())
+}
+if (role === 'alert') {
+  contextBridge.exposeInMainWorld('alertApi', createAlertBridge())
 }

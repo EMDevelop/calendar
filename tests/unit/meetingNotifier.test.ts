@@ -5,6 +5,7 @@ import type { SettingsReader } from '../../src/main/storage/SettingsStore.ts'
 import type { MeetingJoiner } from '../../src/main/calendar/MeetingJoiner.ts'
 import type { AppLogger } from '../../src/main/infra/logger.ts'
 import type { AgendaItem, AgendaSnapshot } from '../../src/shared/types/agenda.ts'
+import type { MeetingAlert } from '../../src/shared/ipc/contract.ts'
 import type { AppSettings } from '../../src/shared/types/settings.ts'
 import { Notification, resetElectronMock } from '../mocks/electron.ts'
 
@@ -20,6 +21,7 @@ const silentLogger: AppLogger = {
 
 let joined: string[] = []
 let widgetShown = 0
+const alertsShown: MeetingAlert[] = []
 
 const joiner = {
   join: (eventId: string) => {
@@ -71,6 +73,9 @@ function createNotifier(settings: SettingsReader = settingsWith()): MeetingNotif
     () => {
       widgetShown += 1
     },
+    (alert) => {
+      alertsShown.push(alert)
+    },
     silentLogger,
   )
 }
@@ -79,6 +84,7 @@ beforeEach(() => {
   resetElectronMock()
   joined = []
   widgetShown = 0
+  alertsShown.length = 0
 })
 
 describe('warning before a meeting', () => {
@@ -160,6 +166,29 @@ describe('announcing the start', () => {
     expect(Notification.shown).toHaveLength(1)
   })
 
+  it('also raises the centre-screen alert, which cannot be dropped by macOS', () => {
+    const notifier = createNotifier()
+    notifier.handleSnapshot(snapshot([live]))
+
+    expect(alertsShown).toHaveLength(1)
+    expect(alertsShown[0]).toMatchObject({ eventId: 'evt', title: 'Design review', canJoin: true })
+  })
+
+  it('raises the alert only once per meeting', () => {
+    const notifier = createNotifier()
+    notifier.handleSnapshot(snapshot([live]))
+    notifier.handleSnapshot(snapshot([{ ...live, startsInMinutes: -1 }]))
+
+    expect(alertsShown).toHaveLength(1)
+  })
+
+  it('does not raise an alert for a warning', () => {
+    const notifier = createNotifier()
+    notifier.handleSnapshot(snapshot([item({ startsInMinutes: 1 })]))
+
+    expect(alertsShown).toHaveLength(0)
+  })
+
   it('stays silent for a meeting that began long ago', () => {
     const notifier = createNotifier()
     notifier.handleSnapshot(snapshot([{ ...live, startsInMinutes: -40 }]))
@@ -216,5 +245,15 @@ describe('privacy mode', () => {
     const shown = Notification.shown[0]
     expect(shown?.options.title).toBe('Busy')
     expect(JSON.stringify(shown?.options)).not.toContain('Board pay review')
+  })
+
+  it('never puts the meeting title in the centre-screen alert either', () => {
+    const notifier = createNotifier()
+    notifier.handleSnapshot(
+      snapshot([item({ status: 'live', startsInMinutes: 0, title: 'Board pay review' })], true),
+    )
+
+    expect(alertsShown[0]?.title).toBe('Busy')
+    expect(JSON.stringify(alertsShown)).not.toContain('Board pay review')
   })
 })

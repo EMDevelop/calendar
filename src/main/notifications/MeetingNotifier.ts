@@ -1,5 +1,6 @@
 import { Notification } from 'electron'
 import { PRIVACY_PLACEHOLDER_TITLE } from '../../shared/constants.ts'
+import type { MeetingAlert } from '../../shared/ipc/contract.ts'
 import type { AgendaItem, AgendaSnapshot } from '../../shared/types/agenda.ts'
 import type { MeetingJoiner } from '../calendar/MeetingJoiner.ts'
 import type { AppLogger } from '../infra/logger.ts'
@@ -28,6 +29,8 @@ export class MeetingNotifier {
     private readonly settings: SettingsReader,
     private readonly joiner: MeetingJoiner,
     private readonly showWidget: () => void,
+    /** Shown centre-screen when a meeting starts; see MeetingAlertWindow. */
+    private readonly showAlert: (alert: MeetingAlert) => void,
     private readonly logger: AppLogger,
   ) {}
 
@@ -95,6 +98,17 @@ export class MeetingNotifier {
       privacyMode,
       body: item.canJoin ? 'Meeting in progress — join now' : 'Meeting in progress',
       kind: 'start',
+    })
+
+    // A system notification can be missed, or dropped entirely if macOS has
+    // not granted permission, so the start is also raised as our own window.
+    this.showAlert({
+      eventId: item.id,
+      title: privacyMode ? PRIVACY_PLACEHOLDER_TITLE : item.title,
+      start: item.start,
+      end: item.end,
+      minutesRemaining: item.minutesRemaining,
+      canJoin: item.canJoin,
     })
   }
 

@@ -34,6 +34,7 @@ export default defineConfig({
         input: {
           widget: resolve(projectRoot, 'src/renderer/widget/index.html'),
           settings: resolve(projectRoot, 'src/renderer/settings/index.html'),
+          alert: resolve(projectRoot, 'src/renderer/alert/index.html'),
         },
       },
     },

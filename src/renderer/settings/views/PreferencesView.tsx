@@ -154,13 +154,22 @@ export function PreferencesView({ state }: PreferencesViewProps): JSX.Element {
         onChange={(checked) => void state.update({ launchAtLogin: checked })}
       />
 
-      <button
-        type="button"
-        onClick={() => void settingsApi().syncNow()}
-        className="self-start rounded border border-border px-3 py-1 text-xs text-accent hover:bg-accent/10"
-      >
-        Sync now
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => void settingsApi().syncNow()}
+          className="rounded border border-border px-3 py-1 text-xs text-accent hover:bg-accent/10"
+        >
+          Sync now
+        </button>
+        <button
+          type="button"
+          onClick={() => void settingsApi().testAlert()}
+          className="rounded border border-border px-3 py-1 text-xs text-accent hover:bg-accent/10"
+        >
+          Show a test alert
+        </button>
+      </div>
     </section>
   )
 }

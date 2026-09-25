@@ -1,4 +1,4 @@
-import type { SettingsBridge, WidgetBridge } from '../../../shared/ipc/bridge.ts'
+import type { AlertBridge, SettingsBridge, WidgetBridge } from '../../../shared/ipc/bridge.ts'
 import {
   accountListSchema,
   agendaSnapshotSchema,
@@ -31,6 +31,14 @@ export function settingsApi(): SettingsBridge {
   const api = window.settingsApi
   if (!api) {
     throw new Error('settings bridge unavailable')
+  }
+  return api
+}
+
+export function alertApi(): AlertBridge {
+  const api = window.alertApi
+  if (!api) {
+    throw new Error('alert bridge unavailable')
   }
   return api
 }
