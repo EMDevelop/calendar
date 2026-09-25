@@ -4,7 +4,7 @@ import type { AccountId, CalendarEvent, EventId } from '../../shared/types/calen
 import { dedupeForMergedView, partitionByAllDay, sortEvents } from '../calendar/EventAggregator.ts'
 import { findNextUp, toAgendaItem } from '../calendar/EventEnricher.ts'
 import { Signal } from '../infra/Signal.ts'
-import type { SettingsStore } from '../storage/SettingsStore.ts'
+import type { SettingsReader } from '../storage/SettingsStore.ts'
 
 interface AccountRuntime {
   status: AccountStatus
@@ -26,7 +26,7 @@ export class AgendaService {
   private snapshot: AgendaSnapshot
 
   constructor(
-    private readonly settings: SettingsStore,
+    private readonly settings: SettingsReader,
     private readonly now: () => Date = () => new Date(),
   ) {
     this.snapshot = this.build(this.now())

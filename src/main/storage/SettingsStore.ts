@@ -13,6 +13,15 @@ import {
   type PersistedState,
 } from './schema.ts'
 
+/**
+ * The narrow read side of the store. Consumers that only need to read depend
+ * on this rather than the concrete class, which keeps them testable without
+ * touching disk.
+ */
+export interface SettingsReader {
+  getSettings(): AppSettings
+}
+
 export interface NewAccount {
   readonly id: AccountId
   readonly provider: ProviderKind

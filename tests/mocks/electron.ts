@@ -56,8 +56,44 @@ export const app = {
   },
 }
 
+export interface FakeIpcEvent {
+  readonly senderFrame: { readonly url: string } | null
+}
+
+type IpcHandler = (event: FakeIpcEvent, payload: unknown) => unknown
+
+const ipcHandlers = new Map<string, IpcHandler>()
+
+export const ipcMain = {
+  handle(channel: string, handler: IpcHandler): void {
+    ipcHandlers.set(channel, handler)
+  },
+  removeHandler(channel: string): void {
+    ipcHandlers.delete(channel)
+  },
+}
+
+/** Drives a registered handler the way Electron would. */
+export async function invokeIpc(
+  channel: string,
+  senderUrl: string | null,
+  payload?: unknown,
+): Promise<unknown> {
+  const handler = ipcHandlers.get(channel)
+  if (!handler) {
+    throw new Error(`no handler registered for ${channel}`)
+  }
+  const event: FakeIpcEvent = { senderFrame: senderUrl === null ? null : { url: senderUrl } }
+  return await handler(event, payload)
+}
+
+export function registeredChannels(): string[] {
+  return [...ipcHandlers.keys()]
+}
+
 export function resetElectronMock(): void {
   safeStorageState.available = true
   safeStorageState.failDecrypt = false
   openedExternalUrls.length = 0
+  ipcHandlers.clear()
 }
