@@ -1,7 +1,5 @@
-import type { WindowRole } from '../../shared/ipc/channels.ts'
+import { WINDOW_ROLES, type WindowRole } from '../../shared/ipc/channels.ts'
 import { APP_SCHEME } from '../windows/appProtocol.ts'
-
-const ROLES: readonly WindowRole[] = ['widget', 'settings']
 
 /**
  * Which window a message came from, or null if it came from anywhere else
@@ -36,5 +34,5 @@ export function roleForSenderUrl(
 }
 
 function asRole(candidate: string): WindowRole | null {
-  return ROLES.find((role) => role === candidate) ?? null
+  return WINDOW_ROLES.find((role) => role === candidate) ?? null
 }

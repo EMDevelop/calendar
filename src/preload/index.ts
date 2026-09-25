@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import { CHANNELS, type WindowRole } from '../shared/ipc/channels.ts'
+import { CHANNELS, WINDOW_ROLES, type WindowRole } from '../shared/ipc/channels.ts'
 import type { AlertBridge, SettingsBridge, WidgetBridge } from '../shared/ipc/bridge.ts'
 import type {
   MeetingAlert,
@@ -34,10 +34,7 @@ function resolveRole(): WindowRole | null {
   const candidate =
     url.protocol === 'app:' ? url.hostname : (url.pathname.split('/').filter(Boolean)[0] ?? '')
 
-  if (candidate === 'widget' || candidate === 'settings' || candidate === 'alert') {
-    return candidate
-  }
-  return null
+  return WINDOW_ROLES.find((role) => role === candidate) ?? null
 }
 
 function createAlertBridge(): AlertBridge {

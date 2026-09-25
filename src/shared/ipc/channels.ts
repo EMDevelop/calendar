@@ -29,8 +29,15 @@ export const CHANNELS = {
 
 export type ChannelName = (typeof CHANNELS)[keyof typeof CHANNELS]
 
+/**
+ * Every window role. The type is derived from this list rather than declared
+ * beside it, so a new role cannot be added to one and missed in the other —
+ * which is exactly how `alert` ended up rejected by main's own sender check.
+ */
+export const WINDOW_ROLES = ['widget', 'settings', 'alert'] as const
+
 /** Which renderer a channel may be invoked from. */
-export type WindowRole = 'widget' | 'settings' | 'alert'
+export type WindowRole = (typeof WINDOW_ROLES)[number]
 
 export const CHANNEL_CALLERS: Record<ChannelName, readonly WindowRole[]> = {
   [CHANNELS.agendaSnapshot]: ['widget'],

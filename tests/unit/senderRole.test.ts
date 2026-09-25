@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { roleForSenderUrl } from '../../src/main/ipc/senderRole.ts'
+import { CHANNEL_CALLERS, WINDOW_ROLES } from '../../src/shared/ipc/channels.ts'
 
 const DEV_ORIGIN = 'http://localhost:5173'
 
@@ -8,6 +9,21 @@ describe('roleForSenderUrl', () => {
   it('identifies each window by its app:// host', () => {
     expect(roleForSenderUrl('app://widget/index.html', null)).toBe('widget')
     expect(roleForSenderUrl('app://settings/index.html', null)).toBe('settings')
+  })
+
+  // Adding a window role and forgetting it here meant main rejected its own
+  // window, so this asserts the whole list rather than naming roles by hand.
+  it.each([...WINDOW_ROLES])('recognises the %s window', (role) => {
+    expect(roleForSenderUrl(`app://${role}/index.html`, null)).toBe(role)
+    expect(roleForSenderUrl(`${DEV_ORIGIN}/${role}/index.html`, DEV_ORIGIN)).toBe(role)
+  })
+
+  it('declares who may call every channel, for every role in use', () => {
+    const rolesInUse = new Set(Object.values(CHANNEL_CALLERS).flat())
+
+    for (const role of rolesInUse) {
+      expect(WINDOW_ROLES).toContain(role)
+    }
   })
 
   it('refuses anything that is not one of our windows', () => {
