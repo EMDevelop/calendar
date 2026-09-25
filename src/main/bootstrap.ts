@@ -93,10 +93,12 @@ class Application {
     const scheduler = new SyncScheduler(coordinator, settings, this.logger.child('scheduler'))
     this.scheduler = scheduler
 
-    const preloadDir = join(import.meta.dirname, '..', 'preload')
+    // One preload for both windows; it exposes only the API for the window it
+    // is attached to (§8.5).
+    const preloadPath = join(import.meta.dirname, '..', 'preload', 'index.cjs')
     const widget = new WidgetWindow(
       {
-        preloadPath: join(preloadDir, 'widget.cjs'),
+        preloadPath,
         devServerUrl: this.devServerUrl,
         isDev: this.config.isDev,
       },
@@ -106,7 +108,7 @@ class Application {
     this.widget = widget
     const settingsWindow = new SettingsWindow(
       {
-        preloadPath: join(preloadDir, 'settings.cjs'),
+        preloadPath,
         devServerUrl: this.devServerUrl,
         isDev: this.config.isDev,
       },

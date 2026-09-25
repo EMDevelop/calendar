@@ -95,6 +95,9 @@ async function startListener(expectedState: string): Promise<Listener> {
     code,
     close: () => {
       clearTimeout(timeout)
+      // Keep-alive sockets would otherwise keep the server open (see
+      // LoopbackServer.close in the app).
+      server.closeAllConnections()
       server.close()
     },
   }

@@ -7,5 +7,7 @@
     "types": ["vite/client"],
     "allowImportingTsExtensions": true
   },
-  "include": ["src/renderer/**/*", "src/shared/**/*"]
+  // The preload runs in the renderer process, so it needs DOM types as well as
+  // Electron's.
+  "include": ["src/renderer/**/*", "src/preload/**/*", "src/shared/**/*"]
 }

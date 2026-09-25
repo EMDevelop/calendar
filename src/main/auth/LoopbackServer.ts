@@ -16,6 +16,9 @@ const HOST = '127.0.0.1'
 const CALLBACK_PATH = '/callback'
 const TIMEOUT_MS = 5 * 60_000
 
+/** Upper bound on shutdown; the sign-in result must not wait on a socket. */
+const CLOSE_TIMEOUT_MS = 2_000
+
 const SUCCESS_PAGE = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Signed in</title></head>
 <body style="font-family: system-ui; padding: 3rem; text-align: center">
@@ -74,16 +77,30 @@ export class LoopbackServer {
     })
   }
 
+  /**
+   * Shutting the listener down must never be able to block sign-in. The
+   * browser holds the callback socket open with keep-alive and
+   * `server.close()` waits for every connection to end, so connections are
+   * dropped explicitly and the wait is bounded.
+   */
   async close(): Promise<void> {
     if (this.timeout) {
       clearTimeout(this.timeout)
       this.timeout = null
     }
-    await new Promise<void>((resolve) => {
+
+    this.server.closeAllConnections()
+
+    const closed = new Promise<void>((resolve) => {
       this.server.close(() => {
         resolve()
       })
     })
+    const bounded = new Promise<void>((resolve) => {
+      setTimeout(resolve, CLOSE_TIMEOUT_MS).unref()
+    })
+
+    await Promise.race([closed, bounded])
   }
 
   private handle(request: IncomingMessage, response: ServerResponse): void {

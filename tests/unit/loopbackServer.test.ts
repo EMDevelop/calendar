@@ -1,4 +1,4 @@
-import { request } from 'node:http'
+import { Agent, request } from 'node:http'
 import { afterEach, describe, expect, it } from 'vitest'
 import { LoopbackServer } from '../../src/main/auth/LoopbackServer.ts'
 import type { AppLogger } from '../../src/main/infra/logger.ts'
@@ -31,7 +31,7 @@ interface RawResponse {
 function call(
   port: number,
   path: string,
-  options: { method?: string; host?: string } = {},
+  options: { method?: string; host?: string; agent?: Agent } = {},
 ): Promise<RawResponse> {
   return new Promise((resolve, reject) => {
     const req = request(
@@ -41,6 +41,7 @@ function call(
         path,
         method: options.method ?? 'GET',
         headers: { host: options.host ?? `127.0.0.1:${port}` },
+        ...(options.agent ? { agent: options.agent } : {}),
       },
       (response) => {
         response.resume()
@@ -109,6 +110,28 @@ describe('LoopbackServer', () => {
     expect((await call(server.port, '/')).status).toBe(404)
     expect((await call(server.port, '/callback', { method: 'POST' })).status).toBe(404)
     expect(settled).toBe(false)
+  })
+
+  it('always finishes closing, even with a keep-alive connection outstanding', async () => {
+    server = await LoopbackServer.start('state-1', silentLogger)
+    const pending = server.waitForCode()
+
+    const keepAlive = new Agent({ keepAlive: true })
+    await call(server.port, '/callback?code=the-code&state=state-1', { agent: keepAlive })
+    await expect(pending).resolves.toBe('the-code')
+
+    // close() is bounded by design, so this asserts the guarantee the sign-in
+    // flow depends on: shutting the listener down can never stall the result.
+    const closed = server.close().then(() => 'closed' as const)
+    const stalled = new Promise<'stalled'>((resolve) =>
+      setTimeout(() => {
+        resolve('stalled')
+      }, 4_000),
+    )
+
+    await expect(Promise.race([closed, stalled])).resolves.toBe('closed')
+    keepAlive.destroy()
+    server = null
   })
 
   it('reports a denied consent screen', async () => {

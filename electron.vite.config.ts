@@ -15,13 +15,14 @@ export default defineConfig({
   },
   preload: {
     build: {
+      // A sandboxed preload cannot require anything at runtime, so everything
+      // must be bundled into the single entry (docs/spec.md §10). A second
+      // entry would make Rollup hoist shared imports into a chunk that the
+      // sandbox then refuses to load.
       externalizeDeps: false,
       rollupOptions: {
-        input: {
-          widget: resolve(projectRoot, 'src/preload/widget.ts'),
-          settings: resolve(projectRoot, 'src/preload/settings.ts'),
-        },
-        output: { format: 'cjs', entryFileNames: '[name].cjs' },
+        input: { index: resolve(projectRoot, 'src/preload/index.ts') },
+        output: { format: 'cjs', entryFileNames: '[name].cjs', inlineDynamicImports: true },
       },
     },
   },

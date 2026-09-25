@@ -88,6 +88,9 @@ export class AccountService {
     const authenticator = this.factory.createAuthenticator('google')
     const result = await authenticator.authenticate()
     const accountId = result.identity.providerAccountId
+    // Sign-in spans a browser round trip, so each step is traced: a stall
+    // anywhere in here shows up as a spinner that never stops.
+    this.logger.info('sign-in returned; registering account')
 
     this.settings.addAccount({
       id: accountId,
@@ -103,11 +106,14 @@ export class AccountService {
         this.registry.set(provider)
       }
     }
+    this.logger.info('provider ready', { registered: this.registry.has(accountId) })
 
     this.agenda.setStatus(accountId, 'ready')
     this.scheduler.reconcile()
+    // Deliberately not awaited: the first sync must not delay the UI response.
     void this.scheduler.syncNow(accountId)
 
+    this.logger.info('connect complete')
     return this.list()
   }
 
